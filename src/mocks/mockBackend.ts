@@ -95,7 +95,47 @@ const createLeadText = (message: string) => {
 如果你后面让 backend 真正返回 markdown，这种结构也可以直接沿用。`
   }
 
+  if (
+    normalized.includes('推荐问题') ||
+    normalized.includes('recommend') ||
+    normalized.includes('orcl')
+  ) {
+    return `下面这段 markdown 里包含一个推荐问题卡片代码块，渲染后会显示为可点击的追问建议：
+
+\`\`\`json:recommend_questions
+{
+  "type": "recommend_questions",
+  "title": "Want me to dig into:",
+  "questions": [
+    "Generate a bracket order set for ORCL using the pullback entry, stop below 195, and target near 220.",
+    "Compare ORCL's post-earnings setup versus MSFT or GOOGL",
+    "Pull the latest ORCL chart levels and RSI"
+  ]
+}
+\`\`\`
+
+点击其中一项后，会自动填入输入框，方便继续追问。`
+  }
+
   return `这是一个走自定义协议的 mock 回复。我先用一段文本回应“${message.slice(0, 48)}${message.length > 48 ? '…' : ''}”，再补几张结构化卡片，方便你确认 assistant-ui 的自定义渲染已经接通。`
+}
+
+const createRecommendQuestionsBlock = (message: string) => {
+  const topic = message.trim() || '这个话题'
+
+  return `
+
+\`\`\`json:recommend_questions
+{
+  "type": "recommend_questions",
+  "title": "Want me to dig into:",
+  "questions": [
+    "帮我围绕“${topic.replace(/"/g, '\\"')}”拆成一个更具体的执行方案",
+    "基于“${topic.replace(/"/g, '\\"')}”给我 3 个继续追问方向",
+    "继续深入“${topic.replace(/"/g, '\\"')}”，补充关键步骤和注意事项"
+  ]
+}
+\`\`\``
 }
 
 export const createMockChatResponse = (
@@ -109,7 +149,7 @@ export const createMockChatResponse = (
     parts: [
       {
         type: 'text',
-        text: createLeadText(message),
+        text: `${createLeadText(message)}${createRecommendQuestionsBlock(message)}`,
       },
       ...createCards(message),
     ],

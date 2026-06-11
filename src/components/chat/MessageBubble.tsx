@@ -1,4 +1,5 @@
 import {
+  useAui,
   MessagePartPrimitive,
   MessagePrimitive,
   useMessage,
@@ -7,7 +8,7 @@ import type {
   AssistantMeta,
   AssistantThinkingState,
 } from '../../assistant/protocol'
-import { MarkdownText } from './MarkdownText'
+import { StreamingMarkdown } from './StreamingMarkdown'
 
 const MessageMeta = () => {
   const message = useMessage()
@@ -61,6 +62,7 @@ const ReasoningBlock = ({ text }: ReasoningBlockProps) => {
 }
 
 export const MessageBubble = () => {
+  const aui = useAui()
   const message = useMessage()
   const isUser = message.role === 'user'
   const thinking = message.metadata.custom.thinking as
@@ -70,6 +72,10 @@ export const MessageBubble = () => {
     !isUser &&
     thinking?.active &&
     !message.content.some((part) => part.type === 'reasoning')
+
+  const handleRecommendSelect = (question: string) => {
+    aui.composer().setText(question)
+  }
 
   return (
     <MessagePrimitive.Root
@@ -104,7 +110,14 @@ export const MessageBubble = () => {
             if (part.type === 'text') {
               return (
                 <div className="message-text-block">
-                  {isUser ? <MessagePartPrimitive.Text /> : <MarkdownText />}
+                  {isUser ? (
+                    <MessagePartPrimitive.Text />
+                  ) : (
+                    <StreamingMarkdown
+                      text={part.text}
+                      onRecommendSelect={handleRecommendSelect}
+                    />
+                  )}
                 </div>
               )
             }

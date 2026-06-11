@@ -1,5 +1,5 @@
 import * as echarts from 'echarts'
-import { useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 
 type RawCandle =
   | [string, number, number, number, number]
@@ -86,14 +86,33 @@ type KlineChartProps = {
   code: string
 }
 
-export const KlineChart = ({ code }: KlineChartProps) => {
+const KlineChartImpl = ({ code }: KlineChartProps) => {
   const payload = useMemo(() => parsePayload(code), [code])
   const chartRef = useRef<HTMLDivElement | null>(null)
+  const instanceRef = useRef<echarts.ECharts | null>(null)
 
   useEffect(() => {
     if (!chartRef.current) return
 
     const chart = echarts.init(chartRef.current)
+    instanceRef.current = chart
+
+    const resizeObserver = new ResizeObserver(() => {
+      chart.resize()
+    })
+
+    resizeObserver.observe(chartRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+      instanceRef.current = null
+      chart.dispose()
+    }
+  }, [])
+
+  useEffect(() => {
+    const chart = instanceRef.current
+    if (!chart) return
 
     chart.setOption({
       animation: false,
@@ -146,19 +165,13 @@ export const KlineChart = ({ code }: KlineChartProps) => {
           },
         },
       ],
-    })
-
-    const resizeObserver = new ResizeObserver(() => {
-      chart.resize()
-    })
-
-    resizeObserver.observe(chartRef.current)
-
-    return () => {
-      resizeObserver.disconnect()
-      chart.dispose()
-    }
+    }, true)
   }, [payload])
 
   return <div ref={chartRef} className="kline-chart" />
 }
+
+const areEqual = (prev: KlineChartProps, next: KlineChartProps) =>
+  prev.code === next.code
+
+export const KlineChart = memo(KlineChartImpl, areEqual)
