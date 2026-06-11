@@ -46,6 +46,17 @@ export type MockChatStreamEvent =
       meta: MockChatMeta
     }
   | {
+      type: 'thinking-start'
+      label?: string
+    }
+  | {
+      type: 'thinking-delta'
+      delta: string
+    }
+  | {
+      type: 'thinking-end'
+    }
+  | {
       type: 'text-delta'
       delta: string
     }
@@ -58,6 +69,10 @@ export type MockChatStreamEvent =
     }
 
 export type AssistantMeta = MockChatMeta
+export type AssistantThinkingState = {
+  active: boolean
+  label?: string
+}
 
 export type AssistantCardPayload = {
   title: string

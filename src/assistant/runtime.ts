@@ -6,16 +6,22 @@ import {
 import type {
   AssistantCardPayload,
   AssistantMeta,
+  AssistantThinkingState,
   MockChatMeta,
   MockChatStreamEvent,
 } from './protocol'
 import { toMockChatRequest } from './protocol'
 
 const toAssistantParts = (
+  reasoning: string,
   text: string,
   cards: AssistantCardPayload[],
 ): ThreadAssistantMessagePart[] => {
   const parts: ThreadAssistantMessagePart[] = []
+
+  if (reasoning) {
+    parts.push({ type: 'reasoning', text: reasoning })
+  }
 
   if (text) {
     parts.push({ type: 'text', text })
@@ -41,13 +47,20 @@ const parseSseEvent = (line: string): MockChatStreamEvent | null => {
   return JSON.parse(payload) as MockChatStreamEvent
 }
 
-const createMetadata = (meta: MockChatMeta | null) => ({
+const createMetadata = (
+  meta: MockChatMeta | null,
+  thinking?: AssistantThinkingState,
+) => ({
   custom: {
     meta:
       meta ?? {
         source: 'vite-mock-sse',
         model: 'mock-assistant-v1',
         latencyMs: 0,
+      },
+    thinking:
+      thinking ?? {
+        active: false,
       },
   },
 })
@@ -56,7 +69,12 @@ async function* streamEvents(
   response: Response,
 ): AsyncGenerator<{
   content: ThreadAssistantMessagePart[]
-  metadata: { custom: { meta: AssistantMeta } }
+  metadata: {
+    custom: {
+      meta: AssistantMeta
+      thinking: AssistantThinkingState
+    }
+  }
 }> {
   if (!response.body) {
     throw new Error('SSE 响应体为空')
@@ -65,9 +83,11 @@ async function* streamEvents(
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
+  let reasoning = ''
   let text = ''
   const cards: AssistantCardPayload[] = []
   let meta: MockChatMeta | null = null
+  let thinking: AssistantThinkingState = { active: false }
 
   while (true) {
     const { done, value } = await reader.read()
@@ -84,8 +104,41 @@ async function* streamEvents(
       if (event.type === 'start') {
         meta = event.meta
         yield {
-          content: toAssistantParts(text, cards),
-          metadata: createMetadata(meta),
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
+        }
+        continue
+      }
+
+      if (event.type === 'thinking-start') {
+        thinking = {
+          active: true,
+          label: event.label ?? '正在思考',
+        }
+        yield {
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
+        }
+        continue
+      }
+
+      if (event.type === 'thinking-delta') {
+        reasoning += event.delta
+        yield {
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
+        }
+        continue
+      }
+
+      if (event.type === 'thinking-end') {
+        thinking = {
+          ...thinking,
+          active: false,
+        }
+        yield {
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
         }
         continue
       }
@@ -93,8 +146,8 @@ async function* streamEvents(
       if (event.type === 'text-delta') {
         text += event.delta
         yield {
-          content: toAssistantParts(text, cards),
-          metadata: createMetadata(meta),
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
         }
         continue
       }
@@ -106,16 +159,16 @@ async function* streamEvents(
           tone: event.card.tone ?? 'neutral',
         })
         yield {
-          content: toAssistantParts(text, cards),
-          metadata: createMetadata(meta),
+          content: toAssistantParts(reasoning, text, cards),
+          metadata: createMetadata(meta, thinking),
         }
       }
     }
   }
 
   yield {
-    content: toAssistantParts(text, cards),
-    metadata: createMetadata(meta),
+    content: toAssistantParts(reasoning, text, cards),
+    metadata: createMetadata(meta, thinking),
   }
 }
 

@@ -46,7 +46,14 @@ const applyMockChatMiddleware = (middlewares: MiddlewareStack) => {
       for (const event of events) {
         res.write(`data: ${JSON.stringify(event)}\n\n`)
         await new Promise<void>((resolve) => {
-          setTimeout(resolve, event.type === 'text-delta' ? 90 : 140)
+          const delay =
+            event.type === 'thinking-delta'
+              ? 180
+              : event.type === 'text-delta'
+                ? 140
+                : 220
+
+          setTimeout(resolve, delay)
         })
       }
 

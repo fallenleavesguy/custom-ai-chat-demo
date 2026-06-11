@@ -125,11 +125,14 @@ export const createMockChatStreamEvents = (
   request: MockChatRequest,
 ): MockChatStreamEvent[] => {
   const response = createMockChatResponse(request)
+  const message = request.message.trim() || '当前问题'
   const text = response.parts.find((part) => part.type === 'text')?.text ?? ''
   const cards = response.parts.filter(
     (part): part is MockCardPart => part.type === 'card',
   )
   const chunkSize = Math.max(18, Math.ceil(text.length / 7))
+  const thinkingText = `先识别用户意图：${message.slice(0, 28)}${message.length > 28 ? '…' : ''}\n正在组织回答结构，并准备需要返回的文本与卡片内容。`
+  const thinkingChunkSize = Math.max(12, Math.ceil(thinkingText.length / 4))
 
   const events: MockChatStreamEvent[] = [
     {
@@ -137,12 +140,42 @@ export const createMockChatStreamEvents = (
       id: response.id,
       meta: response.meta,
     },
+    {
+      type: 'thinking-start',
+      label: '正在整理回答',
+    },
   ]
 
+  for (
+    let thinkingIndex = 0;
+    thinkingIndex < thinkingText.length;
+    thinkingIndex += thinkingChunkSize
+  ) {
+    events.push({
+      type: 'thinking-delta',
+      delta: thinkingText.slice(
+        thinkingIndex,
+        thinkingIndex + thinkingChunkSize,
+      ),
+    })
+  }
+
   for (let index = 0; index < text.length; index += chunkSize) {
+    if (index === 0) {
+      events.push({
+        type: 'thinking-end',
+      })
+    }
+
     events.push({
       type: 'text-delta',
       delta: text.slice(index, index + chunkSize),
+    })
+  }
+
+  if (!text) {
+    events.push({
+      type: 'thinking-end',
     })
   }
 
