@@ -2,7 +2,6 @@ import {
   useLocalRuntime,
   useRemoteThreadListRuntime,
   type ChatModelAdapter,
-  type SuggestionAdapter,
   type ThreadAssistantMessagePart,
 } from '@assistant-ui/react'
 import { useMemo } from 'react'
@@ -15,24 +14,6 @@ import type {
 } from './protocol'
 import { toMockChatRequest } from './protocol'
 import { createMockThreadApiAdapter } from './mockThreadApi'
-
-const defaultSuggestions = [
-  {
-    title: 'K 线图表示例',
-    label: '图表消息',
-    prompt: '给我一段 kline 示例，顺便说明怎么扩展协议',
-  },
-  {
-    title: 'React 学习路线',
-    label: '学习建议',
-    prompt: '帮我推荐三种学习 React 的方式',
-  },
-  {
-    title: '复杂内容总结',
-    label: '摘要任务',
-    prompt: '把这段复杂说明总结成 3 个重点',
-  },
-]
 
 const toAssistantParts = (
   reasoning: string,
@@ -213,62 +194,8 @@ const mockModelAdapter: ChatModelAdapter = {
   },
 }
 
-const mockSuggestionAdapter: SuggestionAdapter = {
-  async generate({ messages }) {
-    const latestUser = [...messages]
-      .reverse()
-      .find((message) => message.role === 'user')
-
-    if (!latestUser) {
-      return defaultSuggestions
-    }
-
-    const latestText = latestUser.content
-      .filter((part) => part.type === 'text')
-      .map((part) => part.text)
-      .join(' ')
-      .toLowerCase()
-
-    if (latestText.includes('react')) {
-      return [
-        {
-          title: '继续展开 hooks',
-          label: '后续追问',
-          prompt: '继续讲一下 useEffect 和 useEffectEvent 的区别',
-        },
-        {
-          title: '给一个练手项目',
-          label: '实战建议',
-          prompt: '给我一个适合学习 React 的小项目练习路线',
-        },
-      ]
-    }
-
-    if (latestText.includes('kline') || latestText.includes('k线')) {
-      return [
-        {
-          title: '再来一个图表示例',
-          label: '扩展协议',
-          prompt: '再给我一个 chart_kline 的 mock 数据示例',
-        },
-        {
-          title: '解释渲染链路',
-          label: '实现细节',
-          prompt: '解释一下 markdown 代码块是怎么映射成 echarts 的',
-        },
-      ]
-    }
-
-    return defaultSuggestions
-  },
-}
-
 const useThreadRuntimeHook = () => {
-  return useLocalRuntime(mockModelAdapter, {
-    adapters: {
-      suggestion: mockSuggestionAdapter,
-    },
-  })
+  return useLocalRuntime(mockModelAdapter)
 }
 
 export const usePlaygroundRuntime = () => {
