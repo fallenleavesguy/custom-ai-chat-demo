@@ -5,7 +5,7 @@ import {
   createMockChatStreamEvents,
 } from './src/mocks/mockBackend'
 import type { ExportedMessageRepository } from '@assistant-ui/core'
-import type { StoredThreadMetadata } from './src/assistant/mockThreadApi'
+import type { StoredThreadMetadata } from './src/assistant/threadTypes'
 
 const readBody = async (req: NodeJS.ReadableStream) => {
   const chunks: Uint8Array[] = []

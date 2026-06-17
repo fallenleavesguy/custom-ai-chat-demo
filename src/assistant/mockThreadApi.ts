@@ -1,6 +1,4 @@
-import { createElement, type FC, type PropsWithChildren, useMemo } from 'react'
 import {
-  RuntimeAdapterProvider,
   type ExportedMessageRepositoryItem,
   type RemoteThreadListAdapter,
   type ThreadHistoryAdapter,
@@ -14,31 +12,23 @@ import type {
   RemoteThreadMetadata,
   ThreadMessage,
 } from '@assistant-ui/core'
+import type { ComponentType, PropsWithChildren } from 'react'
+import { MockThreadHistoryProvider } from './MockThreadHistoryProvider'
 
-export type StoredThreadMetadata = {
-  remoteId: string
-  externalId?: string
-  status: 'regular' | 'archived'
-  title?: string
-  custom?: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
-}
-
-const requestJson = async <T>(input: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(input, {
+function requestJson<T>(input: string, init?: RequestInit): Promise<T> {
+  return fetch(input, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
       ...(init?.headers ?? {}),
     },
+  }).then(async (response) => {
+    if (!response.ok) {
+      throw new Error(`Mock 线程接口请求失败: ${response.status}`)
+    }
+
+    return (await response.json()) as T
   })
-
-  if (!response.ok) {
-    throw new Error(`Mock 线程接口请求失败: ${response.status}`)
-  }
-
-  return (await response.json()) as T
 }
 
 const getMessageText = (message: ExportedMessageRepositoryItem['message']) => {
@@ -55,7 +45,7 @@ const toThreadTitle = (text: string) => {
   return normalized.length > 40 ? `${normalized.slice(0, 40)}...` : normalized
 }
 
-class RemoteThreadHistoryAdapter implements ThreadHistoryAdapter {
+export class RemoteThreadHistoryAdapter implements ThreadHistoryAdapter {
   private aui: ReturnType<typeof useAui>
 
   constructor(aui: ReturnType<typeof useAui>) {
@@ -88,18 +78,6 @@ class RemoteThreadHistoryAdapter implements ThreadHistoryAdapter {
   }
 }
 
-const createHistoryProvider = (): FC<PropsWithChildren> => {
-  const Provider: FC<PropsWithChildren> = ({ children }) => {
-    const aui = useAui()
-    const history = useMemo(() => new RemoteThreadHistoryAdapter(aui), [aui])
-    const adapters = useMemo(() => ({ history }), [history])
-
-    return createElement(RuntimeAdapterProvider, { adapters, children })
-  }
-
-  return Provider
-}
-
 const renameThread = async (remoteId: string, title: string) => {
   await requestJson(`/api/threads/${remoteId}`, {
     method: 'PATCH',
@@ -107,8 +85,10 @@ const renameThread = async (remoteId: string, title: string) => {
   })
 }
 
-export const createMockThreadApiAdapter = (): RemoteThreadListAdapter => ({
-  unstable_Provider: createHistoryProvider(),
+export const createMockThreadApiAdapter = (
+  unstableProvider: ComponentType<PropsWithChildren> = MockThreadHistoryProvider,
+): RemoteThreadListAdapter => ({
+  unstable_Provider: unstableProvider,
 
   list(): Promise<RemoteThreadListResponse> {
     return requestJson<RemoteThreadListResponse>('/api/threads')
