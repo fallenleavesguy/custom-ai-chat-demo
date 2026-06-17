@@ -5,11 +5,6 @@ import {
   type SuggestionAdapter,
   type ThreadAssistantMessagePart,
 } from '@assistant-ui/react'
-import {
-  createLocalStorageAdapter,
-  createSimpleTitleAdapter,
-  type AsyncStorageLike,
-} from '@assistant-ui/core/react'
 import { useMemo } from 'react'
 import type {
   AssistantCardPayload,
@@ -19,6 +14,7 @@ import type {
   MockChatStreamEvent,
 } from './protocol'
 import { toMockChatRequest } from './protocol'
+import { createMockThreadApiAdapter } from './mockThreadApi'
 
 const defaultSuggestions = [
   {
@@ -275,28 +271,8 @@ const useThreadRuntimeHook = () => {
   })
 }
 
-const browserThreadStorage: AsyncStorageLike = {
-  async getItem(key) {
-    return window.localStorage.getItem(key)
-  },
-  async setItem(key, value) {
-    window.localStorage.setItem(key, value)
-  },
-  async removeItem(key) {
-    window.localStorage.removeItem(key)
-  },
-}
-
 export const usePlaygroundRuntime = () => {
-  const adapter = useMemo(
-    () =>
-      createLocalStorageAdapter({
-        storage: browserThreadStorage,
-        prefix: '@assistant-ui-playground:',
-        titleGenerator: createSimpleTitleAdapter(),
-      }),
-    [],
-  )
+  const adapter = useMemo(() => createMockThreadApiAdapter(), [])
 
   return useRemoteThreadListRuntime({
     adapter,
