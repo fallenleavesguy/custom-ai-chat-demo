@@ -1,5 +1,5 @@
-import * as echarts from 'echarts'
-import { memo, useEffect, useMemo, useRef } from 'react'
+import ReactECharts from 'echarts-for-react'
+import { memo, useMemo } from 'react'
 
 type RawCandle =
   | [string, number, number, number, number]
@@ -88,33 +88,8 @@ type KlineChartProps = {
 
 const KlineChartImpl = ({ code }: KlineChartProps) => {
   const payload = useMemo(() => parsePayload(code), [code])
-  const chartRef = useRef<HTMLDivElement | null>(null)
-  const instanceRef = useRef<echarts.ECharts | null>(null)
-
-  useEffect(() => {
-    if (!chartRef.current) return
-
-    const chart = echarts.init(chartRef.current)
-    instanceRef.current = chart
-
-    const resizeObserver = new ResizeObserver(() => {
-      chart.resize()
-    })
-
-    resizeObserver.observe(chartRef.current)
-
-    return () => {
-      resizeObserver.disconnect()
-      instanceRef.current = null
-      chart.dispose()
-    }
-  }, [])
-
-  useEffect(() => {
-    const chart = instanceRef.current
-    if (!chart) return
-
-    chart.setOption({
+  const option = useMemo(
+    () => ({
       animation: false,
       title: {
         text: payload.title,
@@ -165,10 +140,18 @@ const KlineChartImpl = ({ code }: KlineChartProps) => {
           },
         },
       ],
-    }, true)
-  }, [payload])
+    }),
+    [payload],
+  )
 
-  return <div ref={chartRef} className="kline-chart" />
+  return (
+    <ReactECharts
+      option={option}
+      notMerge={true}
+      lazyUpdate={true}
+      className="kline-chart"
+    />
+  )
 }
 
 const areEqual = (prev: KlineChartProps, next: KlineChartProps) =>

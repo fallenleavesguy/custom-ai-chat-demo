@@ -82,6 +82,7 @@ export const MessageBubble = ({ onRecommendSelect }: MessageBubbleProps) => {
     thinking?.active &&
     !hasReasoningPart
 
+
   return (
     <MessagePrimitive.Root
       className={`message-row ${isUser ? 'message-row-user' : 'message-row-assistant'}`}
@@ -91,12 +92,14 @@ export const MessageBubble = ({ onRecommendSelect }: MessageBubbleProps) => {
       >
         {!isUser ? <span className="message-role-badge">AI</span> : null}
 
+        {/* 推理部分内容还没完整时显示 */}
         {showThinkingPlaceholder ? (
           <section className="reasoning-block">
             <header className="reasoning-header">
               <span className="reasoning-title">
                 {thinking?.label ?? '正在思考'}
               </span>
+              {/* loading animation */}
               <span className="reasoning-loading" aria-label="正在思考">
                 <i></i>
                 <i></i>
