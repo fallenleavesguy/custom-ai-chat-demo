@@ -1,7 +1,7 @@
 import {
   MessagePartPrimitive,
   MessagePrimitive,
-  useMessage,
+  useAuiState,
 } from '@assistant-ui/react'
 import type {
   AssistantMeta,
@@ -14,10 +14,12 @@ type MessageBubbleProps = {
 }
 
 const MessageMeta = () => {
-  const message = useMessage()
-  const meta = message.metadata.custom.meta as AssistantMeta | undefined
+  const role = useAuiState((s) => s.message.role)
+  const meta = useAuiState(
+    (s) => s.message.metadata.custom.meta as AssistantMeta | undefined,
+  )
 
-  if (!meta || message.role !== 'assistant') {
+  if (!meta || role !== 'assistant') {
     return null
   }
 
@@ -35,10 +37,11 @@ type ReasoningBlockProps = {
 }
 
 const ReasoningBlock = ({ text }: ReasoningBlockProps) => {
-  const message = useMessage()
-  const thinking = message.metadata.custom.thinking as
-    | AssistantThinkingState
-    | undefined
+  const thinking = useAuiState(
+    (s) => s.message.metadata.custom.thinking as
+      | AssistantThinkingState
+      | undefined,
+  )
 
   return (
     <section className="reasoning-block">
@@ -65,15 +68,19 @@ const ReasoningBlock = ({ text }: ReasoningBlockProps) => {
 }
 
 export const MessageBubble = ({ onRecommendSelect }: MessageBubbleProps) => {
-  const message = useMessage()
-  const isUser = message.role === 'user'
-  const thinking = message.metadata.custom.thinking as
-    | AssistantThinkingState
-    | undefined
+  const isUser = useAuiState((s) => s.message.role === 'user')
+  const thinking = useAuiState(
+    (s) => s.message.metadata.custom.thinking as
+      | AssistantThinkingState
+      | undefined,
+  )
+  const hasReasoningPart = useAuiState((s) =>
+    s.message.content.some((part) => part.type === 'reasoning'),
+  )
   const showThinkingPlaceholder =
     !isUser &&
     thinking?.active &&
-    !message.content.some((part) => part.type === 'reasoning')
+    !hasReasoningPart
 
   return (
     <MessagePrimitive.Root
