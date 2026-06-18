@@ -6,6 +6,7 @@ import {
 
 const SidebarItem = () => {
   const isActive = useAuiState((s) => s.threadListItem.id === s.threads.mainThreadId)
+  console.log('is active', isActive)
 
   return (
     <ThreadListItemPrimitive.Root
@@ -30,12 +31,6 @@ export const ChatSidebar = () => {
 
   return (
     <aside className="chat-sidebar">
-      <div className="chat-sidebar-header">
-        <p className="chat-sidebar-kicker">mock workspace</p>
-        <h2>聊天历史</h2>
-        <p className="chat-sidebar-copy">当前使用 assistant-ui 官方线程列表 runtime，支持新建会话、本地持久化历史和会话切换。</p>
-      </div>
-
       <ThreadListPrimitive.Root className="chat-thread-list">
         <ThreadListPrimitive.New className="chat-thread-new">
           + 新建聊天
