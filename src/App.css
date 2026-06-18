@@ -236,20 +236,6 @@
   margin-top: 18px;
 }
 
-.chat-status-pill,
-.composer-mode-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #f5f9fe 0%, #ebf2fa 100%);
-  border: 1px solid #d6e1ef;
-  color: #234a79;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .thread-root {
   display: flex;
   flex: 1;
@@ -541,19 +527,6 @@
   box-shadow:
     0 18px 40px rgba(80, 103, 131, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.composer-topline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.composer-mode-copy {
-  color: #7488a3;
-  font-size: 13px;
 }
 
 .composer-input {

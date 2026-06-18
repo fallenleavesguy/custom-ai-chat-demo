@@ -5,11 +5,6 @@ export const Composer = () => {
 
   return (
     <div className="composer-frame">
-      <div className="composer-topline">
-        <span className="composer-mode-pill">Mock SSE</span>
-        <span className="composer-mode-copy">支持 markdown 图表块与卡片事件</span>
-      </div>
-
       <ComposerPrimitive.Input
         className="composer-input"
         placeholder="输入问题，试试“给我一段 kline 示例”或“总结一下 React 学习路线”..."
