@@ -3,6 +3,7 @@ import type { MockChatRequest } from './src/assistant/protocol'
 import {
   createMockChatResponse,
   createMockChatStreamEvents,
+  createWelcomeSuggestions,
 } from './src/mocks/mockBackend'
 import type { ExportedMessageRepository } from '@assistant-ui/core'
 import type { StoredThreadMetadata } from './src/assistant/threadTypes'
@@ -277,6 +278,21 @@ const applyMockChatMiddleware = (middlewares: MiddlewareStack) => {
         message: error instanceof Error ? error.message : 'mock sse api error',
       })
     }
+  })
+
+  middlewares.use('/api/chat/suggestions', async (req, res, next) => {
+    if (req.method !== 'GET') {
+      next()
+      return
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 180)
+    })
+
+    sendJson(res, 200, {
+      suggestions: createWelcomeSuggestions(),
+    })
   })
 
   middlewares.use('/api/chat', async (req, res, next) => {

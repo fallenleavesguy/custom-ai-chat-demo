@@ -273,32 +273,6 @@
     linear-gradient(180deg, rgba(245, 248, 252, 0) 0%, rgba(245, 248, 252, 0.92) 24%, #f5f8fc 100%);
 }
 
-.thread-stream-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(242, 247, 252, 0.86);
-  border: 1px solid rgba(210, 223, 238, 0.92);
-  color: #5f7693;
-  font-size: 13px;
-}
-
-.thread-stream-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: #94a6bc;
-  box-shadow: 0 0 0 0 rgba(31, 114, 214, 0);
-}
-
-.thread-stream-dot-live {
-  background: #1f72d6;
-  box-shadow: 0 0 0 6px rgba(31, 114, 214, 0.12);
-}
-
 .welcome-panel {
   max-width: 760px;
   padding: 12px 0 28px;

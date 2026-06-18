@@ -5,6 +5,32 @@ import type {
   MockChatStreamEvent,
 } from '../assistant/protocol'
 
+export type MockWelcomeSuggestion = {
+  title: string
+  label: string
+  prompt: string
+}
+
+export const createWelcomeSuggestions = (): MockWelcomeSuggestion[] => {
+  return [
+    {
+      title: 'K 线图表示例',
+      label: '自定义图表块',
+      prompt: '给我一段 kline 示例，顺便说明怎么扩展协议',
+    },
+    {
+      title: 'React 学习路线',
+      label: '学习建议',
+      prompt: '帮我推荐三种学习 React 的方式',
+    },
+    {
+      title: '复杂内容总结',
+      label: '摘要任务',
+      prompt: '把这段复杂说明总结成 3 个重点',
+    },
+  ]
+}
+
 const createCards = (message: string): MockCardPart[] => {
   const normalized = message.toLowerCase()
 
