@@ -6,7 +6,6 @@ import {
 
 const SidebarItem = () => {
   const isActive = useAuiState((s) => s.threadListItem.id === s.threads.mainThreadId)
-  console.log('is active', isActive)
 
   return (
     <ThreadListItemPrimitive.Root
@@ -38,7 +37,6 @@ export const ChatSidebar = () => {
 
         <div className="chat-thread-summary">
           <span>{threadCount} 个会话</span>
-          <span>本地 mock</span>
         </div>
 
         <div className="chat-thread-items">
