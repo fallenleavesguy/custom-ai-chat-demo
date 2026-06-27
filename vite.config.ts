@@ -4,4 +4,10 @@ import { mockChatApiPlugin } from './vite.mock'
 
 export default defineConfig({
   plugins: [react(), mockChatApiPlugin()],
+  server: {
+    cors: true,
+  },
+  preview: {
+    cors: true,
+  },
 })

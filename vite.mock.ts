@@ -24,6 +24,27 @@ const sendJson = (res: ServerResponse, statusCode: number, payload: unknown) => 
   res.end(JSON.stringify(payload))
 }
 
+const applyCorsHeaders = (res: ServerResponse) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS')
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Requested-With',
+  )
+}
+
+const handleCors = (req: IncomingMessage, res: ServerResponse) => {
+  applyCorsHeaders(res)
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204
+    res.end()
+    return true
+  }
+
+  return false
+}
+
 const notFound = (res: ServerResponse) => {
   sendJson(res, 404, { message: 'mock api not found' })
 }
@@ -127,7 +148,13 @@ type MiddlewareStack = {
   ) => void
 }
 
-const applyMockChatMiddleware = (middlewares: MiddlewareStack) => {
+export const applyMockChatMiddleware = (middlewares: MiddlewareStack) => {
+  middlewares.use('/api', (req, res, next) => {
+    if (handleCors(req, res)) return
+
+    next()
+  })
+
   middlewares.use('/api/threads', async (req, res, next) => {
     const pathname = (req.url ?? '').split('?')[0]
 
